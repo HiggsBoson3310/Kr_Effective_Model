@@ -45,6 +45,7 @@ def cfin(E, Js1,Js2, M1, M2,dim1, dim2, Deigen, As1, As2, Fo, to, c_delta, erang
 
 def cfin_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to, 
                 c_func, delta_mesh, g, wo, degree):
+    
     prefac = (-1)**(Js1+Js2-M1-M2) * wg.wigner_3j(Js1,1,Js2,-M1,0,M2) * wg.wigner_3j(Js2,1,Js1,-M2,0,M1) * -1j * 2 * np.pi * g**2 * Fo**2
     
     #fig, ax = plt.subplots()
@@ -111,7 +112,7 @@ def cfin_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to,
 
 
 def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to, 
-                c_func, delta_mesh, g, wo, degree,plot=False):
+                c_func, delta_mesh, g, wo, degree,plot=False,limits=1.5):
     
     prefac = (-1)**(Js1+Js2-M1-M2) * wg.wigner_3j(Js1,1,Js2,-M1,0,M2) * wg.wigner_3j(Js2,1,Js1,-M2,0,M1) * -1j * 2 * np.pi * g**2 * Fo**2
     
@@ -122,7 +123,7 @@ def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to
     if(plot): fig, ax = plt.subplots()
     #ax2 = ax.twinx()
     neta = len(eta_mesh_fine)-1
-    ir_range = 2.5*np.sqrt(np.log(1e2)/(g**2 / 8))
+    ir_range = limits*np.sqrt(np.log(1e2)/(g**2 / 8))
     dim1 = len(As1_funcs)
     dim2 = len(As2_funcs)
     
@@ -176,7 +177,7 @@ def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to
         
         delta_int += np.sum(xi_int*c_func(eta_ps/to+E)*
                             gauss(g/np.sqrt(8) * (2*wo-eta_ps/to)) *
-                            np.exp(1j*eta_ps)*eta_ws)
+                            np.exp(-1j*eta_ps)*eta_ws)
         if(plot):
             plt.axvline(eta_mesh_fine[i])
             plt.plot(eta_ps, np.real(xi_int*c_func(eta_ps/to+E)*

@@ -3,6 +3,7 @@ import numpy as np
 import math_util as MU
 import matplotlib.pyplot as plt
 import scipy.interpolate as interpol
+import scipy.signal as sg
 import numpy.polynomial.legendre as le
 from matplotlib.widgets import Slider
 
@@ -11,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 # Identified
 state_loc_1 = [26.84082546, 26.7851551088777, 25.1694016, 24.96927929, 26.286652]
 
-state_lab_1 = ['CM15', '$4s4p^6 7p$', 'CM4', '$4s4p^6 5p$', '$4s4p^6 7p$']
+state_lab_1 = ['CM15', '$4s4p^6 7p$', 'CM4', '$4s4p^6 5p$', '$4s4p^6 6p$']
 
 state_loc_2 = [25.83,26.59,26.93,\
             25.73,26.52,26.89]
@@ -27,9 +28,29 @@ I1 = 13.9996055 + (13.514322) #(*4s.4p6*)
 I2 = 13.9996055 + (13.988923*6 + 14.2695909*4 + 14.5809157*2)/12 #(*4s2.4p4.5s.(4P)*)
 I3 = 13.9996055 + (0.665808*2)/6 #(*4s2.4p5*)
 
+
+
+
+# Laser parameters
+gam = 30/fsperau * 1/np.sqrt(4*np.log(2.0))
+guv = 15/fsperau * 1/np.sqrt(4*np.log(2.0))
+w = 0.88/ evperAU
+wuv = 26.9 / evperAU
+per = 0.05 / evperAU
+Fo = np.sqrt(1e12/auI)
+limits = 2.5
+# Spectrogram axis
+e_axis = np.linspace(24.5,25.31,80)
+delays = np.linspace(0/fsperau,8*np.pi/per,50)
+spec = np.zeros((len(e_axis),len(delays)))
+
 # Energy limits
 e1 = 23.4
-e2 = I1-0.001
+e2 = (guv**-2 *(e_axis[-1]/27.211+2*w) + gam**-2 *(wuv) )/(guv**-2+gam**-2) + limits*np.sqrt(np.log(8)/guv**2) #I1-evperAU*0.5/12**2
+e2 = 27.211*e2
+if(e2>I1):
+    ValueError("The code has not been modified to deal with more than one open channel")
+    
 u2 = 26.84082546
 
 print("Limits of the A coeff calculation")
@@ -46,11 +67,15 @@ ls_S2 = np.array([0.,2.,1.])
 state_loc_2_nu = [mqdt.nu(ss/evperAU, Is_S2[0]) for ss in state_loc_2]
 print(state_loc_2_nu)
 
-erange = I1-evperAU * 0.5/np.linspace(mqdt.nu(e1/evperAU,I1/evperAU),mqdt.nu(e2/evperAU,I1/evperAU),90000)**2
+erange = I1-evperAU * 0.5/np.linspace(mqdt.nu(e1/evperAU,I1/evperAU),mqdt.nu(e2/evperAU,I1/evperAU),1000)**2
 
+
+m_S1 = lambda x: np.array([[-0.281,0.00798,-0.13],[0.00798,0.7384,0.196],[-0.13,0.196,0.122]]) +\
+                (x-u2)*np.array([[0,0,0],[0,-0.043,0],[0,0,0]])
+                
 p_S1 = lambda x: np.array([[-0.150, 0.243, 0.3746],[0.243, 0.2246, 0.4608],[0.3746, 0.4608, 0.164]])+\
                 (x-u2)*np.array([[0.02799,-0.05474,0],[-0.05474,-0.130368,0],[0,0,0]])
-                
+        
 p_S2 = lambda x: np.array([[-2.942,0.61,-0.17],[0.61,-2.834,-1.43],[-0.17,-1.43,-0.75]]) #+ (x-)
                 
 phases_S1 = np.zeros((len(erange)),dtype=float)
@@ -288,39 +313,72 @@ def sanity_plots():
 
     return None
 
+#sanity_plots()
+#STOP
+
+
+
+cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv)
+
 #print("Doing the plots")
 
 A1_funcs = [] 
 A2_funcs = []
 
+fig, ax = plt.subplots(1,1)
+ax2 = ax.twinx()
+
+
+# Find the locations of the resonances in our data 
+
+peaks_s1, props1 = sg.find_peaks(np.gradient(np.real(phases_S1),(erange[1]-erange[0])/evperAU))
+peaks_s2, props2 = sg.find_peaks(np.gradient(np.real(phases_S2),(erange[1]-erange[0])/evperAU))
+
+peaks_s1 = mqdt.nu(erange[peaks_s1]/evperAU, I1/evperAU)
+peaks_s2 = mqdt.nu(erange[peaks_s2]/evperAU, I1/evperAU)
+
+
+                                 
 for i in range(3):
-    A1_funcs.append(interpol.interp1d(erange/evperAU,c_coef_S1[:,i]/(T_norm_S1) * c_phase_S1,bounds_error=False,fill_value=1.0))
-    A2_funcs.append(interpol.interp1d(erange/evperAU,c_coef_S2[:,i]/(T_norm_S2) * c_phase_S2,bounds_error=False,fill_value=1.0))
+    A1_funcs.append(interpol.interp1d(erange/evperAU,c_coef_S1[:,i]/(T_norm_S1) * c_phase_S1,bounds_error=False,fill_value=0.0))
+    A2_funcs.append(interpol.interp1d(erange/evperAU,c_coef_S2[:,i]/(T_norm_S2) * c_phase_S2,bounds_error=False,fill_value=0.0))
     
-    #plt.plot(mqdt.nu(erange/evperAU, Is_S1[0]),c_coef_S1[:,i]/T_norm_S1,color='C%i'%i)
-    #plt.plot(mqdt.nu(erange/evperAU, Is_S2[0]),c_coef_S2[:,i]/T_norm_S2,":",color='C%i'%i)
+    ax.plot(mqdt.nu(erange/evperAU, Is_S1[0]),c_coef_S1[:,i]/T_norm_S1,color='C%i'%i)
+    ax.plot(mqdt.nu(erange/evperAU, Is_S2[0]),c_coef_S2[:,i]/T_norm_S2,":",color='C%i'%i)
 
-#plt.plot(mqdt.nu(erange/evperAU, Is_S1[0]),np.cos(np.pi*phases_S1),color='k')
-#plt.plot(mqdt.nu(erange/evperAU, Is_S2[0]),np.cos(np.pi*phases_S2),":",color='k')
-#plt.xlim(2,5)
+ax2.plot(mqdt.nu(erange/evperAU, Is_S1[0]),MU.gauss((erange/evperAU-wuv)/(2/guv)),'-',c='green')
+ax2.plot(mqdt.nu(erange/evperAU, Is_S1[0]),MU.gauss((erange/evperAU-(wuv-w))/(2/gam)),'-',c='blue')
+
+for e in peaks_s1[[3,4]]:
+    E = I1/evperAU - 0.5/e**2
+    ax2.plot(mqdt.nu(erange/evperAU, Is_S1[0]),MU.gauss((erange/evperAU-(E-w))/(2/gam)),':',c='cornflowerblue')
+    ax2.plot(mqdt.nu(erange/evperAU, Is_S1[0]),MU.gauss((erange/evperAU-(E-2*w))/(4/gam)),':',c='cornflowerblue')
+
+
+ax.plot(mqdt.nu(erange/evperAU, Is_S1[0]),np.cos(np.pi*phases_S1),color='k')
+ax.plot(mqdt.nu(erange/evperAU, Is_S2[0]),np.cos(np.pi*phases_S2),":",color='k')
+ax.set_xlim(2,15)
+ax2.set_xlim(2,15)
+
+for e in peaks_s1:
+    ax2.axvline(e,ls=':',color='red')
+
+for e in state_loc_1_nu:
+    ax2.axvline(e,color='red')
+
+for e in peaks_s2:
+    ax2.axvline(e,ls=':', color='blue')
+        
+for e in state_loc_2_nu:
+    ax2.axvline(e,color='blue')
+  
+  
+ax.set_xlim(2,5)
+ax2.set_xlim(2,5)  
 #plt.show()
-
+plt.savefig('./Figures/plots_with_lasers_and_states.png',dpi=120)
 #STOP
-
-# Laser parameters
-gam = 40/fsperau * 1/np.sqrt(4*np.log(2.0))
-guv = 15/fsperau * 1/np.sqrt(4*np.log(2.0))
-w = 0.92/ evperAU
-wuv = 26.9 / evperAU
-per = 0.05 / evperAU
-Fo = np.sqrt(1e12/auI)
-Deigen = np.diag([2,2,1])#np.ones((3,3))
-
-
-cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv)
-
-
-
+plt.close()
 
 def adjuster():
     e_axis = I1/evperAU - 0.5/np.linspace(2,5,160)**2
@@ -398,98 +456,44 @@ def adjuster():
     plt.show()
 
 
-
-e_axis = np.linspace(24.5,25.51,80)
-delays = np.linspace(0/fsperau,8*np.pi/per,50)
-spec = np.zeros((len(e_axis),len(delays)))
-
-Deigen = np.array([[1.35,1.44,0.058],[1.44,2.34,0.0487],[0.058,0.0487,0.0]])
+Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
 
 for i in range(len(e_axis)):
     Ei = e_axis[i]/evperAU
     d_center = (guv**-2 *(Ei+2*w) + gam**-2 *(wuv) )/(guv**-2+gam**-2)
-    delta_mesh = np.linspace(d_center-2.5*np.sqrt(np.log(8)/gam**2),d_center+2.5*np.sqrt(np.log(8)/guv**2),7)
+    delta_mesh = np.linspace(d_center-limits*np.sqrt(np.log(8)/gam**2),d_center+limits*np.sqrt(np.log(8)/guv**2),7)
     for j in range(len(delays)):
         print(i,j)
         to = delays[j]
         
-        if(to>10/fsperau):        
-            spec[i,j] = np.abs(MU.cfin_sum_in_eta_int(Ei,1,0,0,0,Deigen,A1_funcs,A2_funcs,Fo,to,cfunc,delta_mesh,gam,w,20,plot=False))**2
+        if(to>100/fsperau):        
+            spec[i,j] = np.abs(MU.cfin_sum_in_eta_int(Ei,1,0,0,0,Deigen,A1_funcs,A2_funcs,Fo,to,cfunc,delta_mesh,gam,w,20,plot=False,limits=2.5))**2 * (np.abs(A1_funcs[0](Ei))**2 + np.abs(A1_funcs[1](Ei))**2 )
         else:
             if(to>0):
                 spec[i,j] = np.abs(MU.cfin_sum_in(Ei,1,0,0,0,Deigen,A1_funcs,A2_funcs,Fo,to,cfunc,delta_mesh,gam,w,20))**2  * (np.abs(A1_funcs[0](Ei))**2 + np.abs(A1_funcs[1](Ei))**2 )
             else:
                 spec[i,j] = np.abs(MU.cfin_sum_in(Ei,1,0,0,0,Deigen,A1_funcs,A2_funcs,Fo,to,cfunc,delta_mesh,gam,w,20))**2 * (np.abs(A1_funcs[0](Ei))**2 + np.abs(A1_funcs[1](Ei))**2 )
+    
+    
 print(np.any(np.isnan(spec)))
-fig, ax = plt.subplots(1,1)
-im = ax.imshow(spec, origin='lower', extent=[delays[0]*fsperau, delays[-1]*fsperau, e_axis[0], e_axis[-1]],aspect='auto',cmap='turbo')
-plt.colorbar(im)
-ax.axhline(state_loc_1[2],color='blue')
-ax.axhline(state_loc_1[3],color='blue')
-#plt.axhline(state_loc_2[0]-w*evperAU,color='red')
-#plt.axhline(state_loc_2[3]-w*evperAU,color='red')
-ax.axhline(state_loc_1[0]-2*w*evperAU,color='green')
-ax.axhline(state_loc_1[1]-2*w*evperAU,color='green')
-ax.axhline((wuv-2*w)*evperAU)
+fig, axx = plt.subplots(1,2)
+im = axx[0].imshow(spec, origin='lower', extent=[delays[0]*fsperau, delays[-1]*fsperau, e_axis[0], e_axis[-1]],aspect='auto',cmap='turbo')
+fig.colorbar(im,ax=axx[0])
+im = axx[1].imshow(np.sqrt(spec), origin='lower', extent=[delays[0]*fsperau, delays[-1]*fsperau, e_axis[0], e_axis[-1]],aspect='auto',cmap='turbo')
+fig.colorbar(im,ax=axx[1])
+
+axx[0].set_title('Closed channel function norm squared')
+axx[1].set_title('Square root of the norm squared (to ajust the color scale)')
+
+for ax in axx:
+    ax.axhline(state_loc_1[2],color='blue')
+    ax.axhline(state_loc_1[3],color='blue')
+    #plt.axhline(state_loc_2[0]-w*evperAU,color='red')
+    #plt.axhline(state_loc_2[3]-w*evperAU,color='red')
+    ax.axhline(state_loc_1[0]-2*w*evperAU,color='green')
+    ax.axhline(state_loc_1[1]-2*w*evperAU,color='green')
+    ax.axhline((wuv-2*w)*evperAU)
+
 for i in range(8):
     plt.axvline(fsperau * i*np.pi/per,color='white')
 plt.show()
-
-STOP
-
-
-# Now we have to make our table to sample the A coefficients to get the integrals
-
-prim_points, prim_weights = le.leggauss(8)
-
-# correct the points to be from 0 to 1
-prim_points = (prim_points+1)/2
-prim_weights = prim_weights/2
-
-# Sanity check
-print(sum(prim_points**2 * prim_weights),1/3)
-
-# Determine the points for the delta integral
-delta_grid = np.linspace(wuv-np.sqrt(np.log(2.0)/(guv**2/4)),wuv+np.sqrt(np.log(2.0)/(guv**2/4)),4)
-As1_delta = np.zeros(3,8,3)
-As2_xi = np.zeros(3,8,8,3)
-prefac = np.zeros(3,8)
-
-
-# Adjust the weights for the range for the xi integral
-xi_weights =  prim_weights * 2 * np.sqrt(np.log(1e3)*8)/gam
-
-#Now sample the A in the intermediate states 
-
-
-
-emin = np.argmin(np.abs(erange-24.5))
-emax = np.argmin(np.abs(erange-25.5))
-eyaxis = erange[emin:emax:50]
-spec = np.zeros((len(eyaxis),len(delays)))
-
-
-E1 = 26.84082546
-E2 = 25.1694016
-eew = np.linspace(0.5*(E1+E2)*0.995,0.5*(E1+E2)*1.005,300)
-plt.plot(eew, np.real(MU.w(gam*(E2+E1-2*eew)/np.sqrt(8))))
-plt.plot(eew, np.imag(MU.w(gam*(E2+E1-2*eew)/np.sqrt(8))))
-#plt.axvline(E2)
-#plt.axvline(E1)
-plt.axvline(0.5*(E1+E2))
-plt.show()
-plt.savefig('w.png',dpi=120)
-
-
-STOP
-def compute_spec(i, j):
-    print([i,j])
-    return abs(MU.cfin_sum_in(eyaxis[i]/evperAU, 1, 0, 0, 0, 3, 3, Deigen, cmuA1, cmuA2, Fo, delays[j], c_delta, erange/evperAU, gam, w))**2
-
-with ThreadPoolExecutor() as executor:
-    futures = {(i, j): executor.submit(compute_spec, i, j) for i in range(len(eyaxis)) for j in range(len(delays))}
-    for (i, j), future in futures.items():
-        spec[i, j] = future.result()
-
-
-
