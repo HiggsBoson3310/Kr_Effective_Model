@@ -173,5 +173,5 @@ cython_debug/
 *.dat
 
 # Data folder
-./example_*/
-./data/
+example_*/
+data/

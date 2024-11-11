@@ -117,6 +117,7 @@ def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to
     prefac = (-1)**(Js1+Js2-M1-M2) * wg.wigner_3j(Js1,1,Js2,-M1,0,M2) * wg.wigner_3j(Js2,1,Js1,-M2,0,M1) * -1j * 2 * np.pi * g**2 * Fo**2
     
     # In this case we would like to make sure that there are enough points to capture the oscillation of the delay term
+    
     eta_mesh = (delta_mesh-E)*to
     eta_mesh_fine = np.linspace(eta_mesh[0],eta_mesh[-1],int((eta_mesh[-1]-eta_mesh[0])/(np.pi)))
     print(f"Mesh in eta for energy {E} and delay {to}, has {len(eta_mesh_fine)} sectors, compare to the sectors in the original delta mesh {len(delta_mesh)}")
@@ -132,15 +133,14 @@ def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to
     prim_points = (prim_points+1)/2
     prim_weights = prim_weights/2
     As1_e= np.zeros(dim1)
+    
     for k in range(dim1):
         As1_e[k] = As1_funcs[k](E)
     
     delta_int  = 0
     for i in range(neta):
-        #ax.axvline(delta_mesh[i])
         d_size = eta_mesh_fine[i+1]-eta_mesh_fine[i]
         eta_ps = prim_points*d_size+eta_mesh_fine[i]
-        #ax.plot(delt_ps, np.ones_like(delt_ps))
         eta_ws = prim_weights*d_size 
         As1_delta = np.zeros(dim1,dtype=complex)
         xi_int = np.zeros(degree,dtype=complex)
@@ -156,10 +156,6 @@ def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to
             
             for k in range(dim2):
                 As2_xi[:,k] = As2_funcs[k](xi_points)
-                
-                #ax2.plot(xi_points,np.real( As2_xi[:,k]))
-        
-                #ax2.plot(xi_points,np.imag( As2_xi[:,k]),'--')
             
             dipoles = np.array([np.dot(np.conjugate(As1_delta),Deigen@As2_xi[k,:])*\
                                 np.dot(np.conjugate(Deigen@As2_xi[k,:]),As1_e) for k in range(degree)])
@@ -169,10 +165,6 @@ def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to
             
             xi_int[d] = np.sum(ww*dipoles*xi_ws)
 
-            #for x in xi_points: ax.axvline(x,alpha=0.1)
-        
-            #plt.show()
-            #STOP
         
         
         delta_int += np.sum(xi_int*c_func(eta_ps/to+E)*

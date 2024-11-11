@@ -69,9 +69,9 @@ coefs1 = []
 coefs2 = []
 
 for i in range(3):
-    coefs1.append(inter.interp1d(erange/fs.evperAU,cs_S1[:,0]/Ts_S1,kind='cubic',
+    coefs1.append(inter.interp1d(erange/fs.evperAU,cs_S1[:,i]/Ts_S1,kind='cubic',
                                  bounds_error=False, fill_value=0.0))
-    coefs2.append(inter.interp1d(erange/fs.evperAU,cs_S2[:,0]/Ts_S2,kind='cubic',
+    coefs2.append(inter.interp1d(erange/fs.evperAU,cs_S2[:,i]/Ts_S2,kind='cubic',
                                  bounds_error=False, fill_value=0.0))
 
 
