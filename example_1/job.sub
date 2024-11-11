@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#SBATCH --job-name=Kr_test_1
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=12
+#SBATCH -t 20:00:00
+
+# Load the modules
+module load anaconda
+python ../testing.py

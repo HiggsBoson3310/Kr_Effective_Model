@@ -4,6 +4,7 @@ import MQDT_core as mqdt
 import scipy.interpolate as inter
 import matplotlib.pyplot as plt
 import time as time
+import os
 # Thresholds
 I1 = 13.9996055 + (13.514322) #(*4s.4p6*)
 I2 = 13.9996055 + (13.988923*6 + 14.2695909*4 + 14.5809157*2)/12 #(*4s2.4p4.5s.(4P)*)
@@ -77,7 +78,13 @@ for i in range(3):
 #Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
 
 def main():
-    Deigen = np.loadtxt('./dipole_example.dat')
+    # Get the current working directory
+    current_working_directory = os.getcwd()
+
+    # Construct the file path
+    file_path = os.path.join(current_working_directory, 'dipole_example.dat')
+
+    Deigen = np.loadtxt(file_path)
     #spec = fs.compute_spectrogram(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
     spec = fs.compute_spec_parallel(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
     

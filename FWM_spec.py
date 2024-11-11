@@ -128,6 +128,8 @@ def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     # Initialize spectrogram array
     spec = np.zeros((len(e_axis), len(delays)))
     #func = lambda x: spec_line(x,A1_funcs,A2_funcs,Deigen,e_axis,params)
+    print('We are passing to the pool of worker the following dipole: ')
+    print(Deigen)
     pool = Pool()
     arguments = [[i,A1_funcs, A2_funcs, Deigen, e_axis, delays, params] for i in range(len(e_axis))]
     res = pool.starmap(spec_line,arguments)

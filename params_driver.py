@@ -5,7 +5,7 @@ import os
 
 np.random.seed(24)
 
-for i in range(50):
+for i in range(3):
     os.makedirs('./example_%i'%i,exist_ok=True)
     dipoles = np.random.random((3,3))
     dipoles[0,:2] = 2*(dipoles[0,:2]*2-1); dipoles[0,2] = 1e-4*(dipoles[0,2]*2-1)
