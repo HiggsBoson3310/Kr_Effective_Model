@@ -8,9 +8,9 @@ np.random.seed(24)
 for i in range(3):
     os.makedirs('./example_%i'%i,exist_ok=True)
     dipoles = np.random.random((3,3))
-    dipoles[0,:2] = 4*(dipoles[0,:2]*2-1); dipoles[0,2] = 1e-3*(dipoles[0,2]*2-1)
-    dipoles[1,:2] = 4*(dipoles[1,:2]*2-1); dipoles[1,2] = 1e-3*(dipoles[1,2]*2-1)
-    dipoles[2,:] = 1e-5*(dipoles[2,:]*2-1)
+    dipoles[0,:] = 4*(dipoles[0,:]*2-1)#; dipoles[0,2] = 1e-3*(dipoles[0,2]*2-1)
+    dipoles[1,:] = 4*(dipoles[1,:]*2-1)#; dipoles[1,2] = 1e-3*(dipoles[1,2]*2-1)
+    dipoles[2,:] = 4*(dipoles[2,:]*2-1)
     np.savetxt('./example_%i/dipole_example.dat'%i, dipoles)
     
     file = open('./example_%i/job.sub'%i,'w')
