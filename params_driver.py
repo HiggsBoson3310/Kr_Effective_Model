@@ -13,7 +13,7 @@ for i in range(50):
     dipoles[2,:] = 1e-5*(dipoles[2,:]*2-1)
     np.savetxt('./example_%i/dipole_example.dat'%i, dipoles)
     
-    file = open('./example_%i/job.sub','w')
+    file = open('./example_%i/job.sub'%i,'w')
     file.write(f'''#!/bin/bash
 
 #SBATCH --job-name=Kr_test_{i}
