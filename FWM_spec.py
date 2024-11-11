@@ -110,12 +110,12 @@ def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
             spec_l[j] = np.abs(MU.cfin_sum_in_eta_int(
                 Ei, 1, 0, 0, 0, Deigen, A1_funcs, A2_funcs, Fo, to, cfunc,
                 delta_mesh, gam, w, 20, plot=False, limits=2.5
-            ))**2 #* (np.abs(A1_funcs[0](Ei))**2 + np.abs(A1_funcs[1](Ei))**2)
+            ))**2 * (np.abs(A1_funcs[0](Ei))**2 + np.abs(A1_funcs[1](Ei))**2)
         else:
             spec_l[j] = np.abs(MU.cfin_sum_in(
                 Ei, 1, 0, 0, 0, Deigen, A1_funcs, A2_funcs, Fo, to, cfunc,
                 delta_mesh, gam, w, 20
-            ))**2 #* (np.abs(A1_funcs[0](Ei))**2 + np.abs(A1_funcs[1](Ei))**2)
+            ))**2 * (np.abs(A1_funcs[0](Ei))**2 + np.abs(A1_funcs[1](Ei))**2)
     
     return (i, spec_l)
 
