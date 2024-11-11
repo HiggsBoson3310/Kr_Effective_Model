@@ -41,8 +41,8 @@ ls_S1 = np.array([1.,1.,2.])
 Is_S2 = np.array([I1,I1,I3])
 ls_S2 = np.array([0.,2.,1.])
 
-e_axis = np.linspace(24.5,25.31,80)
-delays = np.linspace(0/fs.fsperau,8*np.pi/0.05 * fs.evperAU,50)
+e_axis = np.linspace(24.5,25.31,180)
+delays = np.linspace(0/fs.fsperau,8*np.pi/0.05 * fs.evperAU,90)
 
 
 param_dict = {
