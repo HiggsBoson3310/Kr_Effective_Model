@@ -47,7 +47,7 @@ def GEV_P(E, Km, Is, Ls):
     
     for i in range(nc):
         if(np.isfinite(eigvals[i])):
-            taus.append(np.arctan(eigvals[i])/np.pi)
+            taus.append(np.real(np.arctan(eigvals[i])/np.pi))
             cs.append(eigvec[:,i])
             
     return taus, cs

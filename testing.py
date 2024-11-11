@@ -3,6 +3,7 @@ import numpy as np
 import MQDT_core as mqdt
 import scipy.interpolate as inter
 import matplotlib.pyplot as plt
+import time as time
 # Thresholds
 I1 = 13.9996055 + (13.514322) #(*4s.4p6*)
 I2 = 13.9996055 + (13.988923*6 + 14.2695909*4 + 14.5809157*2)/12 #(*4s2.4p4.5s.(4P)*)
@@ -73,10 +74,15 @@ for i in range(3):
                                  bounds_error=False, fill_value=0.0))
 
 
-
-
 Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
 
-spec = fs.compute_spectrogram(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
+def main():
+    #spec = fs.compute_spec_parallel(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
+    spec = fs.compute_spectrogram(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
+    #np.save('spec_test.npy',spec)
 
-#np.save('spec_test.npy',spec)
+if __name__ == '__main__':
+    st = time.time()
+    main()
+    en = time.time()
+    print(f"{en-st} seconds")

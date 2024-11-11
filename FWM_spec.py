@@ -2,6 +2,7 @@ import MQDT_core as mqdt
 import numpy as np
 import matplotlib.pyplot as plt
 import math_util as MU
+from multiprocessing import Pool
 
 # Constants
 fsperau=2.4188843e-17/1.0e-15; auI = 3.50944e16; evperAU=27.2114079527e0
@@ -76,8 +77,96 @@ def compute_c_coeff(erange, Is, ls, p_params):
         T_norm[i] = np.cos(np.pi * phases[i]) * c_coef[i, -1] + np.sin(np.pi * phases[i]) * np.dot(Km[-1, :], c_coef[i, :])
 
     # Coulomb phase
-    c_phase = np.exp(-1j*(np.pi*phases-np.pi/2*ls[2]+MU.sigma(erange/evperAU,ls[2],Is[2])))
+    c_phase = np.exp(-1j*(np.pi*phases-np.pi/2*ls[2]+MU.sigma(erange/evperAU,ls[2],Is[2]/evperAU)))
+    
     return c_coef, T_norm, phases, c_phase
+
+
+def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
+    # Extract parameters
+    Fo = params['Fo']
+    w = params['w']
+    wuv = params['wuv']
+    gam = params['gam']
+    guv = params['guv']
+    limits = params['limits']
+    
+
+    # Normalized gaussian for the XUV
+    cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv)
+   
+    spec_l = np.zeros(len(delays))
+    
+    Ei = e_axis[i] / evperAU
+    d_center = (guv**-2 * (Ei + 2 * w) + gam**-2 * wuv) / (guv**-2 + gam**-2)
+    delta_mesh = np.linspace(
+        d_center - limits * np.sqrt(np.log(8) / gam**2),
+        d_center + limits * np.sqrt(np.log(8) / guv**2),
+        7
+    )
+    for j in range(len(delays)):
+        to = delays[j]
+        if to > 100 / fsperau:
+            spec_l[j] = np.abs(MU.cfin_sum_in_eta_int(
+                Ei, 1, 0, 0, 0, Deigen, A1_funcs, A2_funcs, Fo, to, cfunc,
+                delta_mesh, gam, w, 20, plot=False, limits=2.5
+            ))**2 * (np.abs(A1_funcs[0](Ei))**2 + np.abs(A1_funcs[1](Ei))**2)
+        else:
+            spec_l[j] = np.abs(MU.cfin_sum_in(
+                Ei, 1, 0, 0, 0, Deigen, A1_funcs, A2_funcs, Fo, to, cfunc,
+                delta_mesh, gam, w, 20
+            ))**2 * (np.abs(A1_funcs[0](Ei))**2 + np.abs(A1_funcs[1](Ei))**2)
+    
+    return (i, spec_l)
+
+def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
+    state_loc_1 = params['state_loc_1']
+    w = params['w']
+    wuv = params['wuv']
+    per = params['per']
+    
+    # Initialize spectrogram array
+    spec = np.zeros((len(e_axis), len(delays)))
+    #func = lambda x: spec_line(x,A1_funcs,A2_funcs,Deigen,e_axis,params)
+    pool = Pool()
+    arguments = [[i,A1_funcs, A2_funcs, Deigen, e_axis, delays, params] for i in range(len(e_axis))]
+    res = pool.starmap(spec_line,arguments)
+    
+    for i in range(len(res)):
+        spec[res[i][0],:] = res[i][1]
+        
+    # Plot spectrogram
+    fig, axx = plt.subplots(1, 2,figsize=(10,5))
+    im = axx[0].imshow(spec, origin='lower',
+                       extent=[delays[0] * fsperau, delays[-1] * fsperau, e_axis[0], e_axis[-1]],
+                       aspect='auto', cmap='turbo')
+    fig.colorbar(im, ax=axx[0])
+    im = axx[1].imshow(np.sqrt(spec), origin='lower',
+                       extent=[delays[0] * fsperau, delays[-1] * fsperau, e_axis[0], e_axis[-1]],
+                       aspect='auto', cmap='turbo')
+    fig.colorbar(im, ax=axx[1])
+
+    axx[0].set_title('Closed channel function norm squared')
+    axx[1].set_title('Square root of the norm squared (to adjust the color scale)')
+
+    for ax in axx:
+        ax.axhline(state_loc_1[2], color='blue')
+        ax.axhline(state_loc_1[3], color='blue')
+        ax.axhline(state_loc_1[0] - 2 * w * evperAU, color='green')
+        ax.axhline(state_loc_1[1] - 2 * w * evperAU, color='green')
+        ax.axhline((wuv - 2 * w) * evperAU)
+
+    for i in range(8):
+        ax.axvline(fsperau * i * np.pi / per, color='white')
+
+    plt.savefig('Spectrogram_parallel.png',dpi=210)
+    
+    np.save('x_axis.npy',delays)
+    np.save('y_axis.npy',e_axis)
+    np.save('spec_data.npy',spec)
+    
+    return spec
+        
 
 def compute_spectrogram(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     """
@@ -105,7 +194,6 @@ def compute_spectrogram(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     limits = params['limits']
     per = params['per']
     state_loc_1 = params['state_loc_1']
-
     # Initialize spectrogram array
     spec = np.zeros((len(e_axis), len(delays)))
 
@@ -159,3 +247,9 @@ def compute_spectrogram(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
         ax.axvline(fsperau * i * np.pi / per, color='white')
 
     plt.savefig('Spectrogram_1.png',dpi=210)
+    
+    np.save('x_axis.npy',delays)
+    np.save('y_axis.npy',e_axis)
+    np.save('spec_data.npy',spec)
+    
+    return spec

@@ -1,0 +1,2 @@
+serial: python testing.py  360.67s user 6.49s system 99% cpu 6:10.37 total (364.28991508483887 seconds)
+parallel: python testing.py  515.98s user 58.36s system 590% cpu 1:37.33 total ( 99.17688775062561 seconds )
