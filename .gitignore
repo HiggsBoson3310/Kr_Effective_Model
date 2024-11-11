@@ -166,3 +166,12 @@ cython_debug/
 
 #Images 
 *.png
+
+# Data files
+*.txt
+*.ipynb
+*.dat
+
+# Data folder
+./example_*/
+./data/

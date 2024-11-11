@@ -74,11 +74,13 @@ for i in range(3):
                                  bounds_error=False, fill_value=0.0))
 
 
-Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
+#Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
 
 def main():
-    #spec = fs.compute_spec_parallel(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
-    spec = fs.compute_spectrogram(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
+    Deigen = np.loadtxt('./example_1.dat')
+    #spec = fs.compute_spectrogram(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
+    spec = fs.compute_spec_parallel(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
+    
     #np.save('spec_test.npy',spec)
 
 if __name__ == '__main__':
