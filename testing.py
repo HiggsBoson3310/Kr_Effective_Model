@@ -44,7 +44,7 @@ delays = np.linspace(0/fs.fsperau,8*np.pi/0.05 * fs.evperAU,50)
 param_dict = {
         'gam': 30/fs.fsperau * 1/np.sqrt(4*np.log(2.0)),
         'guv': 15/fs.fsperau * 1/np.sqrt(4*np.log(2.0)),
-        'w' : 0.88/ fs.evperAU,
+        'w' : 0.923/ fs.evperAU,
         'wuv' : 26.9 / fs.evperAU,
         'per' : 0.05 / fs.evperAU,
         'Fo' : np.sqrt(1e12/fs.auI),
@@ -77,7 +77,7 @@ for i in range(3):
 #Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
 
 def main():
-    Deigen = np.loadtxt('./example_1.dat')
+    Deigen = np.loadtxt('./dipole_example.dat')
     #spec = fs.compute_spectrogram(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
     spec = fs.compute_spec_parallel(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
     
@@ -87,4 +87,4 @@ if __name__ == '__main__':
     st = time.time()
     main()
     en = time.time()
-    print(f"{en-st} seconds")
+    print(f"This run took {en-st} seconds")
