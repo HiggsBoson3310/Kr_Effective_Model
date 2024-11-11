@@ -51,5 +51,3 @@ def GEV_P(E, Km, Is, Ls):
             cs.append(eigvec[:,i])
             
     return taus, cs
-            
-            
