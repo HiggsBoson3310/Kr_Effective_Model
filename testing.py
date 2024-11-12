@@ -48,7 +48,7 @@ delays = np.linspace(0/fs.fsperau,8*np.pi/0.05 * fs.evperAU,90)
 param_dict = {
         'gam': 30/fs.fsperau * 1/np.sqrt(4*np.log(2.0)),
         'guv': 15/fs.fsperau * 1/np.sqrt(4*np.log(2.0)),
-        'w' : 0.923/ fs.evperAU,
+        'w' : 0.88/ fs.evperAU,
         'wuv' : 26.9 / fs.evperAU,
         'per' : 0.05 / fs.evperAU,
         'Fo' : np.sqrt(1e12/fs.auI),
