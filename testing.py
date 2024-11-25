@@ -87,9 +87,12 @@ for i in range(3):
         np.exp(-1j*(np.pi*phs_S2-ls_S2[2]*np.pi/2+c_phase_S2)),kind='cubic',
                                  bounds_error=False, fill_value=0.0))
 
-Zcoefs = lambda x: coefs1[0]+coefs1[1]*1.5
+Zcoefs = lambda x: coefs1[0](x)+coefs1[1](x)*1.5
 
-c= lambda x: MU.norm_gauss((x-param_dict['wuv']),2/param_dict['guv'])
+c= lambda x: MU.norm_gauss((x-param_dict['wuv']),2/param_dict['guv'])*Zcoefs(x/fs.evperAU)
+
+plt.plot(erange,c(erange))
+plt.show()
 
 
 #Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
