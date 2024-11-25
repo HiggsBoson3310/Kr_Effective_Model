@@ -2,7 +2,7 @@
 
 for i in {0..49}
 do
-cd run$i
+cd example_$i
 sbatch job.sub
 cd ..
 done

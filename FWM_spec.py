@@ -118,7 +118,7 @@ def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params, Zcoeffs_ini
     
     return (i, spec_l)
 
-def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
+def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params, Zcoeffs_init):
     state_loc_1 = params['state_loc_1']
     w = params['w']
     wuv = params['wuv']
@@ -130,7 +130,7 @@ def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     print('We are passing to the pool of worker the following dipole: ')
     print(Deigen)
     pool = Pool()
-    arguments = [[i,A1_funcs, A2_funcs, Deigen, e_axis, delays, params] for i in range(len(e_axis))]
+    arguments = [[i,A1_funcs, A2_funcs, Deigen, e_axis, delays, params,Zcoeffs_init] for i in range(len(e_axis))]
     res = pool.starmap(spec_line,arguments)
     
     for i in range(len(res)):

@@ -81,8 +81,6 @@ Zcoefs = lambda x: coefs1[0](x)+coefs1[1](x)
 
 #Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
 
-plt.plot(erange,coefs1)
-
 def main():
     # Get the current working directory
     current_working_directory = os.getcwd()
@@ -92,7 +90,7 @@ def main():
 
     Deigen = np.loadtxt(file_path)
     #spec = fs.compute_spectrogram(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
-    spec = fs.compute_spec_parallel(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
+    spec = fs.compute_spec_parallel(coefs1, coefs2, Deigen, e_axis, delays, param_dict,Zcoefs)
     
     #np.save('spec_test.npy',spec)
 
