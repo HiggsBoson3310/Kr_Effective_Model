@@ -3,6 +3,7 @@ import numpy as np
 import MQDT_core as mqdt
 import scipy.interpolate as inter
 import matplotlib.pyplot as plt
+import math_util as MU
 import time as time
 import os
 # Thresholds
@@ -71,13 +72,25 @@ cs_S2, Ts_S2, phs_S2, c_phase_S2 = fs.compute_c_coeff(erange, Is_S2, ls_S2,p_S2)
 coefs1 = []
 coefs2 = []
 
+fig, ax  = plt.subplots()
+
 for i in range(3):
-    coefs1.append(inter.interp1d(erange/fs.evperAU,cs_S1[:,i]/Ts_S1,kind='cubic',
+    ax.plot(erange, np.real(cs_S1[:,i]/Ts_S1*np.exp(1j*(np.pi*phs_S1+c_phase_S1))),color='C%i'%i)
+    ax.plot(erange, np.imag(cs_S1[:,i]/Ts_S1*np.exp(1j*(np.pi*phs_S1+c_phase_S1))),'--',color='C%i'%i)
+
+
+for i in range(3):
+    coefs1.append(inter.interp1d(erange/fs.evperAU,cs_S1[:,i]/Ts_S1*\
+        np.exp(-1j*(np.pi*phs_S1-ls_S1[2]*np.pi/2+c_phase_S1)),kind='cubic',
                                  bounds_error=False, fill_value=0.0))
-    coefs2.append(inter.interp1d(erange/fs.evperAU,cs_S2[:,i]/Ts_S2,kind='cubic',
+    coefs2.append(inter.interp1d(erange/fs.evperAU,cs_S2[:,i]/Ts_S2*\
+        np.exp(-1j*(np.pi*phs_S2-ls_S2[2]*np.pi/2+c_phase_S2)),kind='cubic',
                                  bounds_error=False, fill_value=0.0))
 
-Zcoefs = lambda x: coefs1[0](x)+coefs1[1](x)
+Zcoefs = lambda x: coefs1[0]+coefs1[1]*1.5
+
+c= lambda x: MU.norm_gauss((x-param_dict['wuv']),2/param_dict['guv'])
+
 
 #Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
 
