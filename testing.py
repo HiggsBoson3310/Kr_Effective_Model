@@ -72,13 +72,6 @@ cs_S2, Ts_S2, phs_S2, c_phase_S2 = fs.compute_c_coeff(erange, Is_S2, ls_S2,p_S2)
 coefs1 = []
 coefs2 = []
 
-fig, ax  = plt.subplots()
-
-for i in range(3):
-    ax.plot(erange, np.real(cs_S1[:,i]/Ts_S1*np.exp(1j*(np.pi*phs_S1+c_phase_S1))),color='C%i'%i)
-    ax.plot(erange, np.imag(cs_S1[:,i]/Ts_S1*np.exp(1j*(np.pi*phs_S1+c_phase_S1))),'--',color='C%i'%i)
-
-
 for i in range(3):
     coefs1.append(inter.interp1d(erange/fs.evperAU,cs_S1[:,i]/Ts_S1*\
         np.exp(-1j*(np.pi*phs_S1-ls_S1[2]*np.pi/2+c_phase_S1)),kind='cubic',
@@ -86,13 +79,6 @@ for i in range(3):
     coefs2.append(inter.interp1d(erange/fs.evperAU,cs_S2[:,i]/Ts_S2*\
         np.exp(-1j*(np.pi*phs_S2-ls_S2[2]*np.pi/2+c_phase_S2)),kind='cubic',
                                  bounds_error=False, fill_value=0.0))
-
-Zcoefs = lambda x: coefs1[0](x)+coefs1[1](x)*1.5
-
-c= lambda x: MU.norm_gauss((x-param_dict['wuv']),2/param_dict['guv'])*Zcoefs(x/fs.evperAU)
-
-plt.plot(erange,c(erange))
-plt.show()
 
 
 #Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
@@ -106,7 +92,7 @@ def main():
 
     Deigen = np.loadtxt(file_path)
     #spec = fs.compute_spectrogram(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
-    spec = fs.compute_spec_parallel(coefs1, coefs2, Deigen, e_axis, delays, param_dict,Zcoefs)
+    spec = fs.compute_spec_parallel(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
     
     #np.save('spec_test.npy',spec)
 

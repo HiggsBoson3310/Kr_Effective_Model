@@ -81,7 +81,7 @@ def compute_c_coeff(erange, Is, ls, p_params):
     
     return c_coef, T_norm, phases, c_phase
 
-def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params, Zcoeffs_init):
+def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     # Extract parameters
     Fo = params['Fo']
     w = params['w']
@@ -92,6 +92,7 @@ def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params, Zcoeffs_ini
     
 
     # Normalized gaussian for the XUV
+    Zcoeffs_init = lambda x: A1_funcs[0](x)+A2_funcs[1](x)
     cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv)*Zcoeffs_init(x)
    
     spec_l = np.zeros(len(delays))
@@ -118,7 +119,7 @@ def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params, Zcoeffs_ini
     
     return (i, spec_l)
 
-def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params, Zcoeffs_init):
+def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     state_loc_1 = params['state_loc_1']
     w = params['w']
     wuv = params['wuv']
@@ -130,7 +131,7 @@ def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params, Zc
     print('We are passing to the pool of worker the following dipole: ')
     print(Deigen)
     pool = Pool()
-    arguments = [[i,A1_funcs, A2_funcs, Deigen, e_axis, delays, params,Zcoeffs_init] for i in range(len(e_axis))]
+    arguments = [[i,A1_funcs, A2_funcs, Deigen, e_axis, delays, params] for i in range(len(e_axis))]
     res = pool.starmap(spec_line,arguments)
     
     for i in range(len(res)):
