@@ -81,8 +81,7 @@ def compute_c_coeff(erange, Is, ls, p_params):
     
     return c_coef, T_norm, phases, c_phase
 
-
-def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
+def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params, Zcoeffs_init):
     # Extract parameters
     Fo = params['Fo']
     w = params['w']
@@ -93,7 +92,7 @@ def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     
 
     # Normalized gaussian for the XUV
-    cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv)
+    cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv)*Zcoeffs_init(x)
    
     spec_l = np.zeros(len(delays))
     
@@ -168,7 +167,6 @@ def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     np.save('spec_data.npy',spec)
     
     return spec
-        
 
 def compute_spectrogram(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     """

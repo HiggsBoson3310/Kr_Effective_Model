@@ -29,7 +29,7 @@ u2 = 26.84082546
 p_S1 = lambda x: np.array([[-0.150, 0.243, 0.3746],[0.243, 0.2246, 0.4608],[0.3746, 0.4608, 0.164]])+\
                 (x-u2)*np.array([[0.02799,-0.05474,0],[-0.05474,-0.130368,0],[0,0,0]])
 
-p_S1 = lambda x: np.array([[-0.281,0.00798,-0.13],[0.00798,0.7384,0.196],[-0.13,0.196,0.122]]) +\
+m_S1 = lambda x: np.array([[-0.281,0.00798,-0.13],[0.00798,0.7384,0.196],[-0.13,0.196,0.122]]) +\
                 (x-u2)*np.array([[0,0,0],[0,-0.043,0],[0,0,0]])
 
 p_S2 = lambda x: np.array([[-2.942,0.61,-0.17],[0.61,-2.834,-1.43],[-0.17,-1.43,-0.75]]) #+ (x-)
@@ -77,8 +77,11 @@ for i in range(3):
     coefs2.append(inter.interp1d(erange/fs.evperAU,cs_S2[:,i]/Ts_S2,kind='cubic',
                                  bounds_error=False, fill_value=0.0))
 
+Zcoefs = lambda x: coefs1[0](x)+coefs1[1](x)
 
 #Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
+
+plt.plot(erange,coefs1)
 
 def main():
     # Get the current working directory

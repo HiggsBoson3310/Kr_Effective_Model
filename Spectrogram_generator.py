@@ -69,13 +69,13 @@ ls_S2 = np.array([0.,2.,1.])
 state_loc_2_nu = [mqdt.nu(ss/evperAU, Is_S2[0]) for ss in state_loc_2]
 print(state_loc_2_nu)
 
-erange = I1-evperAU * 0.5/np.linspace(mqdt.nu(e1/evperAU,I1/evperAU),mqdt.nu(e2/evperAU,I1/evperAU),1000)**2
+erange = I1-evperAU * 0.5/np.linspace(mqdt.nu(e1/evperAU,I1/evperAU),mqdt.nu(e2/evperAU,I1/evperAU),5000)**2
 
 
-m_S1 = lambda x: np.array([[-0.281,0.00798,-0.13],[0.00798,0.7384,0.196],[-0.13,0.196,0.122]]) +\
+p_S1 = lambda x: np.array([[-0.281,0.00798,-0.13],[0.00798,0.7384,0.196],[-0.13,0.196,0.122]]) +\
                 (x-u2)*np.array([[0,0,0],[0,-0.043,0],[0,0,0]])
                 
-p_S1 = lambda x: np.array([[-0.150, 0.243, 0.3746],[0.243, 0.2246, 0.4608],[0.3746, 0.4608, 0.164]])+\
+m_S1 = lambda x: np.array([[-0.150, 0.243, 0.3746],[0.243, 0.2246, 0.4608],[0.3746, 0.4608, 0.164]])+\
                 (x-u2)*np.array([[0.02799,-0.05474,0],[-0.05474,-0.130368,0],[0,0,0]])
         
 p_S2 = lambda x: np.array([[-2.942,0.61,-0.17],[0.61,-2.834,-1.43],[-0.17,-1.43,-0.75]]) #+ (x-)
@@ -315,11 +315,6 @@ def sanity_plots():
 
     return None
 
-#sanity_plots()
-#STOP
-
-
-
 cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv)
 
 #print("Doing the plots")
@@ -339,7 +334,12 @@ peaks_s2, props2 = sg.find_peaks(np.gradient(np.real(phases_S2),(erange[1]-erang
 peaks_s1 = mqdt.nu(erange[peaks_s1]/evperAU, I1/evperAU)
 peaks_s2 = mqdt.nu(erange[peaks_s2]/evperAU, I1/evperAU)
 
+np.savetxt('symmetry_one_peaks.txt',peaks_s1)
+np.savetxt('symmetry_two_peaks.txt',peaks_s2)
 
+sanity_plots()
+
+STOP
                                  
 for i in range(3):
     A1_funcs.append(interpol.interp1d(erange/evperAU,c_coef_S1[:,i]/(T_norm_S1) * c_phase_S1,bounds_error=False,fill_value=0.0))
