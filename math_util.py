@@ -59,7 +59,7 @@ def cfin_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to,
     # correct the points to be from 0 to 1
     prim_points = (prim_points+1)/2
     prim_weights = prim_weights/2
-    As1_e= np.zeros(dim1)
+    As1_e= np.zeros(dim1,dtype=complex)
     for k in range(dim1):
         As1_e[k] = As1_funcs[k](E)
     
@@ -132,7 +132,7 @@ def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to
     # correct the points to be from 0 to 1
     prim_points = (prim_points+1)/2
     prim_weights = prim_weights/2
-    As1_e= np.zeros(dim1)
+    As1_e= np.zeros(dim1,dtype=complex)
     
     for k in range(dim1):
         As1_e[k] = As1_funcs[k](E)
