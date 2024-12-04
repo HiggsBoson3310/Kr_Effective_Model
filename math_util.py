@@ -88,8 +88,8 @@ def cfin_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to,
         
                 #ax2.plot(xi_points,np.imag( As2_xi[:,k]),'--')
             
-            dipoles = np.array([np.dot(np.conjugate(As1_delta),Deigen@As2_xi[k,:])*\
-                                np.dot(np.conjugate(Deigen@As2_xi[k,:]),As1_e) for k in range(degree)])
+            dipoles = np.array([np.dot(np.conjugate(As1_e),Deigen@As2_xi[k,:])*\
+                                np.dot(np.conjugate(Deigen@As2_xi[k,:]),As1_delta) for k in range(degree)])
             
             ww = w((E+delt_ps[d]-2*xi_points)*g/np.sqrt(8))
             
@@ -110,6 +110,84 @@ def cfin_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to,
     
     return delta_int * prefac
 
+def c_omega_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, 
+                c_func, delta_mesh, g, wo, degree, omega):
+    
+    # Here we want to define a function to obtain the fourier transform of the spectrogram analytically
+    
+    prefac =np.abs( (-1)**(Js1+Js2-M1-M2) * wg.wigner_3j(Js1,1,Js2,-M1,0,M2) * wg.wigner_3j(Js2,1,Js1,-M2,0,M1) * -1j * 2 * np.pi * g**2 * Fo**2 )**2
+    
+    ndelta = len(delta_mesh)-1
+    ir_range = 2.5*np.sqrt(np.log(1e2)/(g**2 / 8))
+    dim1 = len(As1_funcs)
+    dim2 = len(As2_funcs)
+    
+    prim_points, prim_weights = le.leggauss(degree)
+    # correct the points to be from 0 to 1
+    prim_points = (prim_points+1)/2
+    prim_weights = prim_weights/2
+    
+    As1_e = np.zeros(dim1,dtype=complex)
+    for k in range(dim1):
+        As1_e[k] = As1_funcs[k](E)
+    
+    delta_int  = 0
+    for i in range(ndelta):
+        #ax.axvline(delta_mesh[i])
+        d_size = delta_mesh[i+1]-delta_mesh[i]
+        delt_ps = prim_points*d_size+delta_mesh[i]
+        #ax.plot(delt_ps, np.ones_like(delt_ps))
+        delt_ws = prim_weights*d_size 
+        # Now we have to evaluate two different xi integrals with two different delta 
+        # evaluations 
+        As1_delta = np.zeros(dim1,dtype=complex)
+        xi_int = np.zeros(degree,dtype=complex)
+        
+        As1_delta_omega = np.zeros(dim1,dtype=complex)
+        xi_int_prime = np.zeros(degree,dtype=complex)
+        
+        for d in range(degree):
+            for k in range(dim1):
+                As1_delta[k] = As1_funcs[k](delt_ps[d])
+                As1_delta_omega[k] = As1_funcs[k](delt_ps[d]+omega)
+            
+            xilo = 0.5*(E+delt_ps[d])-ir_range
+            xi_points = prim_points*2*ir_range + xilo
+            xi_ws = prim_weights*2*ir_range
+            
+            As2_xi = np.zeros((degree, dim2),dtype=complex)
+            As2_xi_prime = np.zeros((degree,dim2),dtype=complex)
+            
+            for k in range(dim2):
+                As2_xi[:,k] = As2_funcs[k](xi_points)
+                As2_xi_prime[:,k] = As2_funcs[k](xi_points)
+            
+            dipoles = np.array([np.dot(np.conjugate(As1_e),Deigen@As2_xi[k,:])*\
+                                np.dot(np.conjugate(Deigen@As2_xi[k,:]),As1_delta) for k in range(degree)])
+            
+            dipoles_prime = np.array([np.dot(np.conjugate(As1_e),Deigen@As2_xi_prime[k,:])*\
+                                np.dot(np.conjugate(Deigen@As2_xi_prime[k,:]),As1_delta_omega) for k in range(degree)])
+            
+            ww       = w((E+delt_ps[d]-2*xi_points)*g/np.sqrt(8))
+            ww_prime = w((E+delt_ps[d]+omega-2*xi_points)*g/np.sqrt(8))
+            
+            
+            
+            
+            xi_int[d] = np.sum(ww*dipoles*xi_ws)
+            xi_int_prime[d] = np.sum(ww_prime*dipoles_prime*xi_ws)
+
+            #for x in xi_points: ax.axvline(x,alpha=0.1)
+        
+            #plt.show()
+            #STOP
+        
+        
+        delta_int += np.sum(xi_int*xi_int_prime*c_func(delt_ps)*c_func(delt_ps+omega)*
+                            gauss(g/np.sqrt(4) * (E+2*wo-omega/2-delt_ps)) *delt_ws)
+        
+    return delta_int * prefac
+    
 
 def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to, 
                 c_func, delta_mesh, g, wo, degree,plot=False,limits=1.5):

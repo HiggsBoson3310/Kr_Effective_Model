@@ -44,6 +44,7 @@ ls_S2 = np.array([0.,2.,1.])
 
 e_axis = np.linspace(24.5,25.31,180)
 delays = np.linspace(0/fs.fsperau,8*np.pi/0.05 * fs.evperAU,90)
+freqs = np.linspace(0/fs.evperAU, 0.5/fs.evperAU, 90)
 
 
 param_dict = {
@@ -92,7 +93,7 @@ def main():
 
     Deigen = np.loadtxt(file_path)
     #spec = fs.compute_spectrogram(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
-    spec = fs.compute_spec_parallel(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
+    spec = fs.compute_spec_parallel_fft(coefs1, coefs2, Deigen, e_axis, freqs, param_dict)
     
     #np.save('spec_test.npy',spec)
 

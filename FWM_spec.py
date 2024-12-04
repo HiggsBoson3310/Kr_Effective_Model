@@ -1,5 +1,6 @@
 import MQDT_core as mqdt
 import numpy as np
+import scipy.fft as fft
 import matplotlib.pyplot as plt
 import math_util as MU
 from multiprocessing import Pool
@@ -119,6 +120,38 @@ def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     
     return (i, spec_l)
 
+def spec_line_fft(i, A1_funcs, A2_funcs, Deigen, e_axis, freqs, params):
+    # Extract parameters
+    Fo = params['Fo']
+    w = params['w']
+    wuv = params['wuv']
+    gam = params['gam']
+    guv = params['guv']
+    limits = params['limits']
+    
+
+    # Normalized gaussian for the XUV
+    Zcoeffs_init = lambda x: A1_funcs[0](x)+A2_funcs[1](x)
+    cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv) * Zcoeffs_init(x)
+   
+    spec_l = np.zeros(len(freqs))
+    
+    Ei = e_axis[i] / evperAU
+    d_center = (guv**-2 * (Ei + 2 * w) + gam**-2 * wuv) / (guv**-2 + gam**-2)
+    delta_mesh = np.linspace(
+        d_center - limits * np.sqrt(np.log(8) / gam**2),
+        d_center + limits * np.sqrt(np.log(8) / guv**2),
+        7
+    )
+    for j in range(len(freqs)):
+        to = freqs[j]
+        spec_l[j] = np.abs(MU.c_omega_sum_in(
+                Ei, 1, 0, 0, 0, Deigen, A1_funcs, A2_funcs, Fo, cfunc,
+                delta_mesh, gam, w, 20,to
+            ) * (np.abs(A1_funcs[0](Ei))**2 + np.abs(A1_funcs[1](Ei))**2))
+    
+    return (i, spec_l)
+
 def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     state_loc_1 = params['state_loc_1']
     w = params['w']
@@ -162,11 +195,76 @@ def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
         ax.axvline(fsperau * i * np.pi / per, color='white')
 
     plt.savefig('Spectrogram_parallel.png',dpi=210)
+    plt.close()
+    
     
     np.save('x_axis.npy',delays)
     np.save('y_axis.npy',e_axis)
     np.save('spec_data.npy',spec)
     
+    freqs = fft.fftfreq(len(delays),d=(delays[1]-delays[0])/fsperau)[:len(delays)//2] * 2 * np.pi * evperAU
+    
+    spec_fft = fft.fft(spec,axis=1)[:,:len(delays)/2]
+    
+    fig, ax = plt.subplots()
+    
+    X,Y = np.meshgrid(freqs, e_axis)
+    
+    ax.pcolormesh(X,Y, np.abs(spec_fft), cmap='reds')
+    
+    plt.savefig('Spectrogram_fft.png',dpi=210)
+    
+    return spec
+
+def compute_spec_parallel_fft(A1_funcs, A2_funcs, Deigen, e_axis, freqs, params):
+    state_loc_1 = params['state_loc_1']
+    w = params['w']
+    wuv = params['wuv']
+    per = params['per']
+    
+    # Initialize spectrogram array
+    spec = np.zeros((len(e_axis), len(freqs)))
+    #func = lambda x: spec_line(x,A1_funcs,A2_funcs,Deigen,e_axis,params)
+    print('We are passing to the pool of worker the following dipole: ')
+    print(Deigen)
+    pool = Pool()
+    arguments = [[i,A1_funcs, A2_funcs, Deigen, e_axis, freqs, params] for i in range(len(e_axis))]
+    res = pool.starmap(spec_line_fft,arguments)
+    
+    for i in range(len(res)):
+        spec[res[i][0],:] = res[i][1]
+        
+    # Plot spectrogram
+    fig, axx = plt.subplots(1, 2,figsize=(10,5))
+    im = axx[0].imshow(spec, origin='lower',
+                       extent=[freqs[0] * fsperau, freqs[-1] * fsperau, e_axis[0], e_axis[-1]],
+                       aspect='auto', cmap='turbo')
+    fig.colorbar(im, ax=axx[0])
+    im = axx[1].imshow(np.sqrt(spec), origin='lower',
+                       extent=[freqs[0] * fsperau, freqs[-1] * fsperau, e_axis[0], e_axis[-1]],
+                       aspect='auto', cmap='turbo')
+    fig.colorbar(im, ax=axx[1])
+
+    axx[0].set_title('Closed channel function norm squared')
+    axx[1].set_title('Square root of the norm squared (to adjust the color scale)')
+
+    for ax in axx:
+        ax.axhline(state_loc_1[2], color='blue')
+        ax.axhline(state_loc_1[3], color='blue')
+        ax.axhline(state_loc_1[0] - 2 * w * evperAU, color='green')
+        ax.axhline(state_loc_1[1] - 2 * w * evperAU, color='green')
+        ax.axhline((wuv - 2 * w) * evperAU)
+
+    for i in range(8):
+        ax.axvline(fsperau * i * np.pi / per, color='white')
+
+    plt.savefig('Spectrogram_parallel_fft_comp.png',dpi=210)
+    plt.close()
+    
+    
+    np.save('x_axis_fft.npy',freqs)
+    np.save('y_axis_fft.npy',e_axis)
+    np.save('spec_data_fft.npy',spec)
     return spec
 
 def compute_spectrogram(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
