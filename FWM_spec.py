@@ -229,6 +229,7 @@ def compute_spec_parallel_fft(A1_funcs, A2_funcs, Deigen, e_axis, freqs, params)
     print('We are passing to the pool of worker the following dipole: ')
     print(Deigen)
     pool = Pool()
+    print("The created pool is using "+str(pool._processes)+" workers.")
     arguments = [[i,A1_funcs, A2_funcs, Deigen, e_axis, freqs, params] for i in range(len(e_axis))]
     res = pool.starmap(spec_line_fft,arguments)
     
