@@ -9,6 +9,7 @@ from multiprocessing import Pool
 fsperau=2.4188843e-17/1.0e-15; auI = 3.50944e16; evperAU=27.2114079527e0
 fsm1toeV = fsperau*evperAU
 
+
 def compute_c_coeff(erange, Is, ls, p_params):
     """
     Compute c_coef, T_norm, and phases arrays over the given energy range.
@@ -254,6 +255,17 @@ def compute_spec_parallel_fft(A1_funcs, A2_funcs, Deigen, e_axis, freqs, params)
         ax.axhline(state_loc_1[0] - 2 * w * evperAU, color='green')
         ax.axhline(state_loc_1[1] - 2 * w * evperAU, color='green')
         ax.axhline((wuv - 2 * w) * evperAU)
+        
+    beats = []
+    for f in state_loc_1:
+        for g in state_loc_1:
+            if(f!=g):
+                beats.append((f-g)/evperAU)
+                
+    for ax in axx:
+        for f in beats:
+            if(f<freqs[-1]):
+                ax.axvline(f)
 
     plt.savefig('Spectrogram_parallel_fft_comp.png',dpi=210)
     plt.close()
