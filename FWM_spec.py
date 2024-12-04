@@ -237,11 +237,11 @@ def compute_spec_parallel_fft(A1_funcs, A2_funcs, Deigen, e_axis, freqs, params)
     # Plot spectrogram
     fig, axx = plt.subplots(1, 2,figsize=(10,5))
     im = axx[0].imshow(spec, origin='lower',
-                       extent=[freqs[0] * fsperau, freqs[-1] * fsperau, e_axis[0], e_axis[-1]],
+                       extent=[freqs[0] * evperAU, freqs[-1] * evperAU, e_axis[0], e_axis[-1]],
                        aspect='auto', cmap='turbo')
     fig.colorbar(im, ax=axx[0])
     im = axx[1].imshow(np.sqrt(spec), origin='lower',
-                       extent=[freqs[0] * fsperau, freqs[-1] * fsperau, e_axis[0], e_axis[-1]],
+                       extent=[freqs[0] * evperAU, freqs[-1] * evperAU, e_axis[0], e_axis[-1]],
                        aspect='auto', cmap='turbo')
     fig.colorbar(im, ax=axx[1])
 
@@ -254,9 +254,6 @@ def compute_spec_parallel_fft(A1_funcs, A2_funcs, Deigen, e_axis, freqs, params)
         ax.axhline(state_loc_1[0] - 2 * w * evperAU, color='green')
         ax.axhline(state_loc_1[1] - 2 * w * evperAU, color='green')
         ax.axhline((wuv - 2 * w) * evperAU)
-
-    for i in range(8):
-        ax.axvline(fsperau * i * np.pi / per, color='white')
 
     plt.savefig('Spectrogram_parallel_fft_comp.png',dpi=210)
     plt.close()
