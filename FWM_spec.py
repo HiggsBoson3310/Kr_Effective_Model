@@ -261,12 +261,12 @@ def compute_spec_parallel_fft(A1_funcs, A2_funcs, Deigen, e_axis, freqs, params)
     for f in state_loc_1:
         for g in state_loc_1:
             if(f!=g):
-                beats.append((f-g)/evperAU)
+                beats.append(abs(f-g)/evperAU)
                 
     for ax in axx:
         for f in beats:
             if(f<freqs[-1]):
-                ax.axvline(f)
+                ax.axvline(f*evperAU)
 
     plt.savefig('Spectrogram_parallel_fft_comp.png',dpi=210)
     plt.close()
