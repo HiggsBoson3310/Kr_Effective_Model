@@ -8,9 +8,15 @@ def Km(mu_mat):
 def nu(e,I):
     return np.sqrt(0.5/(I-e))
 
+def k(e,I):
+    return np.sqrt(2*(e-I))
+
 def beta(e,I,l):
     return np.pi*(nu(e,I)-l)
 
+def eta(e, I, l):
+    sigma = np.angle(sc.special.gamma(l+1-1j/k(e,I)))
+    return 1/k(e,I) * np.log(2*k(e,I)) + sigma -1/2 * np.pi * l
 # Definition of the solution of the generalized eigen-value problem
 def GEV_P(E, Km, Is, Ls):
     # determine open channels
@@ -49,5 +55,32 @@ def GEV_P(E, Km, Is, Ls):
         if(np.isfinite(eigvals[i])):
             taus.append(np.real(np.arctan(eigvals[i])/np.pi))
             cs.append(eigvec[:,i])
-            
-    return taus, cs
+    
+    # Z coeffs
+    # Now we compute the Z coefficients from the fomula 
+    
+    Smatd = sc.linalg.inv(np.eye(nc)+1j*Km)@(np.eye(nc)-1j*Km) 
+    et = np.zeros(len(op),dtype=complex)
+    bet = np.zeros(len(cl), dtype=complex)
+    
+    o = 0
+    c = 0
+    for i in range(nc):
+        if(i in op):
+            et[o] = eta(E,Is[i],Ls[i])
+            o+=1
+        else:
+            bet[c] = beta(E,Is[i],Ls[i])
+            c+=1
+    
+    Scc = Smatd[np.ix_(cl,cl)]
+    Sco = Smatd[np.ix_(cl,op)]
+    Soo = Smatd[np.ix_(op,op)]
+    Soc = Smatd[np.ix_(op,cl)]
+    
+    Z = np.diag(np.exp(1j*bet))@sc.linalg.inv(Scc-np.diag(np.exp(2j*bet)))@Sco@np.diag(np.exp(-1j*et))
+    
+    Sphy = np.diag(np.exp(-1j*et))@(Soo-Soc@sc.linalg.inv(Scc-np.diag(np.exp(2j*bet)))@Sco)@np.diag(np.exp(-1j*et))
+    
+    
+    return taus, cs, Z, np.real(Sphy)

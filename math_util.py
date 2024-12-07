@@ -187,7 +187,6 @@ def c_omega_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo,
                             gauss(g/np.sqrt(4) * (E+2*wo-omega/2-delt_ps)) *delt_ws)
         
     return delta_int * prefac
-    
 
 def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to, 
                 c_func, delta_mesh, g, wo, degree,plot=False,limits=1.5):

@@ -67,20 +67,24 @@ e2 = 27.211*e2
 
 erange = I1-fs.evperAU * 0.5/np.linspace(mqdt.nu(e1/fs.evperAU,I1/fs.evperAU),mqdt.nu(e2/fs.evperAU,I1/fs.evperAU),1000)**2
 
-cs_S1, Ts_S1, phs_S1, c_phase_S1 = fs.compute_c_coeff(erange, Is_S1, ls_S1,p_S1)
-cs_S2, Ts_S2, phs_S2, c_phase_S2 = fs.compute_c_coeff(erange, Is_S2, ls_S2,p_S2)
+cs_S1, Ts_S1, phs_S1, c_phase_S1, Z1, smat1, Z1c = fs.compute_c_coeff(erange, Is_S1, ls_S1,p_S1)
+cs_S2, Ts_S2, phs_S2, c_phase_S2, Z2, smat2, Z2c = fs.compute_c_coeff(erange, Is_S2, ls_S2,p_S2)
+
+Z1_1 = np.array([Z1[i][0] for i in range(len(erange))])
+Z1_2 = np.array([Z1[i][1] for i in range(len(erange))])
+Z1_1c = np.array([Z1c[i][0] for i in range(len(erange))])
+Z1_2c = np.array([Z1c[i][1] for i in range(len(erange))])
+
+sm1 = np.array([smat1[i][0] for i in range(len(erange))])
 
 coefs1 = []
 coefs2 = []
 
 for i in range(3):
-    coefs1.append(inter.interp1d(erange/fs.evperAU,cs_S1[:,i]/Ts_S1*\
-        np.exp(-1j*(np.pi*phs_S1-ls_S1[2]*np.pi/2+c_phase_S1)),kind='cubic',
+    coefs1.append(inter.interp1d(erange/fs.evperAU,cs_S1[:,i]/Ts_S1*c_phase_S1,kind='cubic',\
                                  bounds_error=False, fill_value=0.0))
-    coefs2.append(inter.interp1d(erange/fs.evperAU,cs_S2[:,i]/Ts_S2*\
-        np.exp(-1j*(np.pi*phs_S2-ls_S2[2]*np.pi/2+c_phase_S2)),kind='cubic',
+    coefs2.append(inter.interp1d(erange/fs.evperAU,cs_S2[:,i]/Ts_S2*c_phase_S2,kind='cubic',\
                                  bounds_error=False, fill_value=0.0))
-
 
 #Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
 

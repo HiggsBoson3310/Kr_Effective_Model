@@ -38,6 +38,9 @@ def compute_c_coeff(erange, Is, ls, p_params):
     # Initialize arrays
     phases = np.zeros(len(erange), dtype=float)
     c_coef = np.zeros((len(erange), len(Is)), dtype=float)
+    Z_coef = np.zeros((len(erange)),dtype=object)
+    Z_coef_calc = np.zeros(len(erange),dtype=object)
+    smat_l = np.zeros((len(erange)),dtype=object)
     T_norm = np.zeros(len(erange), dtype=float)
     U = np.zeros((len(erange), len(Is), len(Is)), dtype=float)
 
@@ -50,13 +53,12 @@ def compute_c_coeff(erange, Is, ls, p_params):
         E = erange[i]  # Energy in eV
         # Compute K-matrix
         Km = mqdt.Km(p_params(E))
-
         # Eigenvalues and eigenvectors
         eigvals, U[i, :, :] = np.linalg.eigh(Km)
         mus = np.arctan(eigvals) / np.pi
 
         # Solve generalized eigenvalue problem
-        taus, cs = mqdt.GEV_P(E / evperAU, Km, Is / evperAU, ls)
+        taus, cs, Z, rSmat = mqdt.GEV_P(E / evperAU, Km, Is / evperAU, ls)
         phases[i] = taus[0] + n
         c_coef[i, :] = cs[0] * s
 
@@ -77,11 +79,18 @@ def compute_c_coeff(erange, Is, ls, p_params):
 
         # Compute T_norm
         T_norm[i] = np.cos(np.pi * phases[i]) * c_coef[i, -1] + np.sin(np.pi * phases[i]) * np.dot(Km[-1, :], c_coef[i, :])
-
+        
+        Z_coef[i] = Z
+        
+        bet = np.array(mqdt.beta(E/evperAU,Is[:2]/evperAU,ls[:2]))
+        Z_coef_calc[i] = -np.diag(np.cos(bet))@c_coef[i,:2]+np.diag(np.sin(bet))@(Km@c_coef[i])[:2]
+        
+        smat_l[i] = rSmat
     # Coulomb phase
-    c_phase = np.exp(-1j*(np.pi*phases-np.pi/2*ls[2]+MU.sigma(erange/evperAU,ls[2],Is[2]/evperAU)))
     
-    return c_coef, T_norm, phases, c_phase
+    c_phase = np.exp(-1j*(np.pi*phases+mqdt.eta(E/evperAU,Is[2]/evperAU,ls[2])))
+    
+    return c_coef, T_norm, phases, c_phase, Z_coef, smat_l, Z_coef_calc
 
 def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     # Extract parameters
