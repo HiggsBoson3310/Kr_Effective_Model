@@ -83,7 +83,7 @@ def compute_c_coeff(erange, Is, ls, p_params):
         Z_coef[i] = Z
         
         bet = np.array(mqdt.beta(E/evperAU,Is[:2]/evperAU,ls[:2]))
-        Z_coef_calc[i] = -np.diag(np.cos(bet))@c_coef[i,:2]+np.diag(np.sin(bet))@(Km@c_coef[i])[:2]
+        Z_coef_calc[i] = np.diag(1/np.sin(bet))@(Km@c_coef[i])[:2]
         
         smat_l[i] = rSmat
     # Coulomb phase

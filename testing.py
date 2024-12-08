@@ -98,8 +98,8 @@ def main():
     Deigen = np.loadtxt(file_path)
     #spec = fs.compute_spectrogram(coefs1, coefs2, Deigen, e_axis, delays, param_dict)
     spec = fs.compute_spec_parallel_fft(coefs1, coefs2, Deigen, e_axis, freqs, param_dict)
-    
     #np.save('spec_test.npy',spec)
+    spec = fs.compute_spec_parallel(coefs1,coefs2,Deigen,e_axis,delays,param_dict)
 
 if __name__ == '__main__':
     st = time.time()
