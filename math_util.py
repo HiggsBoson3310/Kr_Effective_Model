@@ -234,8 +234,8 @@ def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to
             for k in range(dim2):
                 As2_xi[:,k] = As2_funcs[k](xi_points)
             
-            dipoles = np.array([np.dot(np.conjugate(As1_delta),Deigen@As2_xi[k,:])*\
-                                np.dot(np.conjugate(Deigen@As2_xi[k,:]),As1_e) for k in range(degree)])
+            dipoles = np.array([np.dot(np.conjugate(As1_e),Deigen@As2_xi[k,:])*\
+                                np.dot(np.conjugate(Deigen@As2_xi[k,:]),As1_delta) for k in range(degree)])
             
             ww = w((2*E+eta_ps[d]/to-2*xi_points)*g/np.sqrt(8))
             

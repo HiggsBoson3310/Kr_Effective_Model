@@ -214,7 +214,7 @@ def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     
     freqs = fft.fftfreq(len(delays),d=(delays[1]-delays[0])/fsperau)[:len(delays)//2] * 2 * np.pi * evperAU
     
-    spec_fft = fft.fft(spec,axis=1)[:,:len(delays)/2]
+    spec_fft = fft.fft(spec,axis=1)[:,:len(delays)//2]
     
     fig, ax = plt.subplots()
     
