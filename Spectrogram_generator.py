@@ -35,7 +35,7 @@ I3 = 13.9996055 + (0.665808*2)/6 #(*4s2.4p5*)
 # Laser parameters
 gam = 30/fsperau * 1/np.sqrt(4*np.log(2.0))
 guv = 15/fsperau * 1/np.sqrt(4*np.log(2.0))
-w = 0.88/ evperAU
+w = 0.93/evperAU #0.88/ evperAU
 wuv = 26.9 / evperAU
 per = 0.05 / evperAU
 Fo = np.sqrt(1e12/auI)
