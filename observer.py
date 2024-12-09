@@ -6,6 +6,7 @@ from matplotlib.widgets import Slider
 
 fsperau=2.4188843e-17/1.0e-15; auI = 3.50944e16; evperAU=27.2114079527e0
 fsm1toeV = fsperau*evperAU
+I = 13.9996055 + (13.514322) #(*4s.4p6*)
 
 def slider():
     # Base directory path
@@ -77,31 +78,64 @@ def single_plot(number):
         data = np.load(data_file)
         X, Y = np.meshgrid(x*fsperau,y)
         ax[0].pcolormesh(X, Y, data,cmap='turbo')
-        ax[0].set_title(f"Norm squared of closed channel function.")
+        ax[0].set_title(f"Probability as function of energy and delay")
         ax[0].set_xlabel('Time delay (fs)')
         ax[0].set_ylabel('Energy (eV)')
         ax[0].set_ylim(24.8,25.2)
         
-        freqs = fft.fftfreq(len(x),d=(x[1]-x[0]))[:len(x)//2] * 2 * np.pi * evperAU
+        for a in ax:
+            a.axhline(I-0.5*evperAU/4.319445456164016761e+00**2-2*0.88)
+            a.axhline(I-0.5*evperAU/4.496410938988247175e+00**2-2*0.88)
+        
+        freqs = fft.fftfreq(len(x),d=(x[1]-x[0])) * 2 * np.pi * evperAU
     
-        spec_fft = fft.fft(data,axis=1)[:,:len(x)//2]
+        spec_fft = fft.fft(data,axis=1)
         
         
-        X,Y = np.meshgrid(freqs, y)
+        X,Y = np.meshgrid(freqs[:len(x)//2], y)
         
-        ax[1].pcolormesh(X,Y, np.sqrt(np.abs(spec_fft)), cmap='turbo')
+        ax[1].pcolormesh(X,Y, np.sqrt(np.abs(spec_fft[:,:len(x)//2])), cmap='turbo')
         ax[1].set_ylim(24.8,25.2)
+        
         plt.show()
         plt.close()
         
+        freq = evperAU*0.5*abs(1/4.319445456164016761e+00**2-1/4.496410938988247175e+00**2)
+        
+        iof = np.argmin(np.abs(freqs-freq))
+        imof = np.argmin(np.abs(freqs+freq))
+        print(f'filterng on a window around {freq} centered in bin {iof} for positive and {imof} for negative')
+        filter_spec = np.zeros_like(spec_fft)
+        filter_spec[:,iof-3:iof+3] = spec_fft[:,iof-3:iof+3]
+        filter_spec[:,imof-3:imof+3] = spec_fft[:,imof-3:imof+3]
+        
+        new_dat = fft.ifft(filter_spec,axis=1)
+        
         fig, ax  = plt.subplots(2,1)
+        X,Y = np.meshgrid(x*fsperau,y)
+        ax[0].pcolormesh(X,Y,np.real(new_dat),cmap='turbo')
+        ax[0].set_title(f"Probability as function of energy and delay")
+        ax[0].set_xlabel('Time delay (fs)')
+        ax[0].set_ylabel('Energy (eV)')
+        X,Y = np.meshgrid(freqs[:len(x)//2],y)
+        ax[1].pcolormesh(X,Y,np.abs(filter_spec[:,:len(x)//2]))
+        for a in ax:
+            a.axhline(I-0.5*evperAU/4.319445456164016761e+00**2-2*0.88)
+            a.axhline(I-0.5*evperAU/4.496410938988247175e+00**2-2*0.88)
+        plt.show()
+        plt.close()
+        
+        
+        fig, ax  = plt.subplots(2,1,gridspec_kw={'hspace': 0.5})
         avg = np.mean(data, axis=-1)
         ax[0].plot(y, avg)
+        ax[0].set_title('Energy average')
         X,Y = np.meshgrid(x*fsperau,y)
         newdat = np.zeros_like(data)
+        ax[1].set_title('x20 saturated')
         for i in range(len(x)):
-            newdat[:,i] = data[:,i]-avg
-        ax[1].pcolormesh(X,Y,newdat,cmap='turbo',vmin=0)
+            newdat[:,i] = data[:,i]
+        ax[1].pcolormesh(X,Y,newdat*20,cmap='turbo',vmin=0,vmax=np.max(newdat)*5)
         ax[1].set_ylim(24.8,25.2)
         plt.show()
         
