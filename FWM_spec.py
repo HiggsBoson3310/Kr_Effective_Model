@@ -92,6 +92,42 @@ def compute_c_coeff(erange, Is, ls, p_params):
     
     return c_coef, T_norm, phases, c_phase, Z_coef, smat_l, Z_coef_calc
 
+def simple_test(A1_funcs, A2_funcs, Deigen, e_axis, params):
+    # Extract parameters
+    Fo = params['Fo']
+    w = params['w']
+    wuv = params['wuv']
+    gam = params['gam']
+    guv = params['guv']
+    limits = params['limits']
+    
+
+    # Normalized gaussian for the XUV
+    Zcoeffs_init = lambda x: A1_funcs[0](x)+A2_funcs[1](x)
+    cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv)*Zcoeffs_init(x)
+    
+    Ei = 24.99/ evperAU
+    d_center = (guv**-2 * (Ei + 2 * w) + gam**-2 * wuv) / (guv**-2 + gam**-2)
+    delta_mesh = np.linspace(
+        d_center - limits * np.sqrt(np.log(8) / gam**2),
+        d_center + limits * np.sqrt(np.log(8) / guv**2),
+        25
+    )
+    
+    print('plot to show the eta stuff')
+    eta =  MU.cfin_sum_in_eta_int(
+                Ei, 1, 0, 0, 0, Deigen, A1_funcs, A2_funcs, Fo, 100/fsperau, cfunc,
+                delta_mesh, gam, w, 20, plot=True, limits=2.5)
+    
+    print('plot to show the non-eta')
+    no_eta = MU.cfin_sum_in(
+                Ei, 1, 0, 0, 0, Deigen, A1_funcs, A2_funcs, Fo, 100/fsperau, cfunc,
+                delta_mesh, gam, w, 20, plot=True
+            )
+    
+    print(f'Integration with the eta derivation {eta} and without the eta derivaiton {no_eta}')
+    
+
 def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     # Extract parameters
     Fo = params['Fo']

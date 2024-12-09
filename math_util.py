@@ -43,15 +43,15 @@ def cfin(E, Js1,Js2, M1, M2,dim1, dim2, Deigen, As1, As2, Fo, to, c_delta, erang
     
     return prefac * res  
 
-def cfin_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to, 
-                c_func, delta_mesh, g, wo, degree):
+def cfin_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to, c_func, delta_mesh, g, wo, degree,plot=True,limits=2.5):
     
     prefac = (-1)**(Js1+Js2-M1-M2) * wg.wigner_3j(Js1,1,Js2,-M1,0,M2) * wg.wigner_3j(Js2,1,Js1,-M2,0,M1) * -1j * 2 * np.pi * g**2 * Fo**2
     
-    #fig, ax = plt.subplots()
-    #ax2 = ax.twinx()
+    if(plot):
+        fig, ax = plt.subplots()
+        
     ndelta = len(delta_mesh)-1
-    ir_range = 2.5*np.sqrt(np.log(1e2)/(g**2 / 8))
+    ir_range = limits*np.sqrt(np.log(1e2)/(g**2 / 8))
     dim1 = len(As1_funcs)
     dim2 = len(As2_funcs)
     
@@ -65,10 +65,9 @@ def cfin_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to,
     
     delta_int  = 0
     for i in range(ndelta):
-        #ax.axvline(delta_mesh[i])
+        if(plot): ax.axvline(delta_mesh[i])
         d_size = delta_mesh[i+1]-delta_mesh[i]
         delt_ps = prim_points*d_size+delta_mesh[i]
-        #ax.plot(delt_ps, np.ones_like(delt_ps))
         delt_ws = prim_weights*d_size 
         As1_delta = np.zeros(dim1,dtype=complex)
         xi_int = np.zeros(degree,dtype=complex)
@@ -83,10 +82,7 @@ def cfin_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to,
             
             for k in range(dim2):
                 As2_xi[:,k] = As2_funcs[k](xi_points)
-                
-                #ax2.plot(xi_points,np.real( As2_xi[:,k]))
-        
-                #ax2.plot(xi_points,np.imag( As2_xi[:,k]),'--')
+
             
             dipoles = np.array([np.dot(np.conjugate(As1_e),Deigen@As2_xi[k,:])*\
                                 np.dot(np.conjugate(Deigen@As2_xi[k,:]),As1_delta) for k in range(degree)])
@@ -95,19 +91,25 @@ def cfin_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to,
             
             
             xi_int[d] = np.sum(ww*dipoles*xi_ws)
-
-            #for x in xi_points: ax.axvline(x,alpha=0.1)
-        
-            #plt.show()
-            #STOP
-        
         
         delta_int += np.sum(xi_int*c_func(delt_ps)*
                             gauss(g/np.sqrt(8) * (E+2*wo-delt_ps)) *
                             np.exp(1j*(E-delt_ps)*to)*delt_ws)
-    
-    
-    
+        
+        if(plot):
+            plt.axvline(delta_mesh[i])
+            
+            plt.plot(delt_ps, np.real(xi_int*c_func(delt_ps)*
+                        gauss(g/np.sqrt(8) * (E+2*wo-delt_ps)) *
+                        np.exp(1j*(E-delt_ps)*to)*delt_ws ))
+            
+            plt.plot(delt_ps, np.imag(xi_int*c_func(delt_ps)*
+                        gauss(g/np.sqrt(8) * (E+2*wo-delt_ps)) *
+                        np.exp(1j*(E-delt_ps)*to)*delt_ws ),'--',c=f'C{i}')
+        
+        
+    if(plot): 
+        plt.savefig('delta_integral.png',dpi=120)
     return delta_int * prefac
 
 def c_omega_sum_in(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, 
@@ -198,8 +200,10 @@ def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to
     eta_mesh = (delta_mesh-E)*to
     eta_mesh_fine = np.linspace(eta_mesh[0],eta_mesh[-1],int((eta_mesh[-1]-eta_mesh[0])/(np.pi)))
     print(f"Mesh in eta for energy {E} and delay {to}, has {len(eta_mesh_fine)} sectors, compare to the sectors in the original delta mesh {len(delta_mesh)}")
-    if(plot): fig, ax = plt.subplots()
-    #ax2 = ax.twinx()
+    
+    if(plot): 
+        fig, ax = plt.subplots()
+        
     neta = len(eta_mesh_fine)-1
     ir_range = limits*np.sqrt(np.log(1e2)/(g**2 / 8))
     dim1 = len(As1_funcs)
@@ -248,17 +252,17 @@ def cfin_sum_in_eta_int(E, Js1,Js2, M1, M2, Deigen, As1_funcs, As2_funcs, Fo, to
                             gauss(g/np.sqrt(8) * (2*wo-eta_ps/to)) *
                             np.exp(-1j*eta_ps)*eta_ws)
         if(plot):
-            plt.axvline(eta_mesh_fine[i])
-            plt.plot(eta_ps, np.real(xi_int*c_func(eta_ps/to+E)*
+            ax.axvline(eta_mesh_fine[i]/to+E)
+            ax.plot(eta_ps/to+E, np.real(xi_int*c_func(eta_ps/to+E)*
                             gauss(g/np.sqrt(8) * (2*wo-eta_ps/to)) *
-                            np.exp(1j*eta_ps)),c=f'C{i}')
+                            np.exp(-1j*eta_ps)),c=f'C{i}')
             
-            plt.plot(eta_ps, np.imag(xi_int*c_func(eta_ps/to+E)*
+            ax.plot(eta_ps/to+E, np.imag(xi_int*c_func(eta_ps/to+E)*
                             gauss(g/np.sqrt(8) * (2*wo-eta_ps/to)) *
-                            np.exp(1j*eta_ps) ),'--',c=f'C{i}')
+                            np.exp(-1j*eta_ps) ),'--',c=f'C{i}')
     
     if(plot): 
-        plt.axvline(eta_mesh_fine[-1])
-        plt.show()
+        ax.axvline(eta_mesh_fine[-1]/to+E)
+        plt.savefig('eta_integral.png',dpi=120)
     
     return delta_int * prefac/to

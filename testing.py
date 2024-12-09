@@ -88,6 +88,15 @@ for i in range(3):
 
 #Deigen = np.array([[1.35,0.00,0.058],[0.00,-2.34,0.0487],[0.018,0.017,0.0]])
 
+ # Construct the file path
+current_working_directory = os.getcwd()
+file_path = os.path.join(current_working_directory, 'dipole_example.dat')
+
+Deigen = np.loadtxt(file_path)
+    
+fs.simple_test(coefs1,coefs2,Deigen,e_axis,param_dict)
+STOP 
+
 def main():
     # Get the current working directory
     current_working_directory = os.getcwd()
