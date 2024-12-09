@@ -257,7 +257,7 @@ def compute_spec_parallel(A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     
     X,Y = np.meshgrid(freqs, e_axis)
     
-    ax.pcolormesh(X,Y, np.abs(spec_fft), cmap='reds')
+    ax.pcolormesh(X,Y, np.abs(spec_fft), cmap='turbo')
     
     plt.savefig('Spectrogram_fft.png',dpi=210)
     
