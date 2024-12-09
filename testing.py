@@ -93,7 +93,12 @@ current_working_directory = os.getcwd()
 file_path = os.path.join(current_working_directory, 'dipole_example.dat')
 
 Deigen = np.loadtxt(file_path)
+
+Zcoeffs_init = lambda x: coefs1[0](x)+A2_funcs[1](x)
+cfunc = lambda x: MU.norm_gauss((x-param_dict['wuv']),2/param_dict['guv'])*Zcoeffs_init(x)
+
     
+STOP
 
 def main():
     # Get the current working directory

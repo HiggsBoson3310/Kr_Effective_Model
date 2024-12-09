@@ -103,8 +103,9 @@ def simple_test(A1_funcs, A2_funcs, Deigen, e_axis, params):
     
 
     # Normalized gaussian for the XUV
-    Zcoeffs_init = lambda x: A1_funcs[0](x)+A2_funcs[1](x)
+    Zcoeffs_init = lambda x: A1_funcs[0](x)+A1_funcs[1](x)
     cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv)*Zcoeffs_init(x)
+    
     
     Ei = 24.99/ evperAU
     d_center = (guv**-2 * (Ei + 2 * w) + gam**-2 * wuv) / (guv**-2 + gam**-2)
@@ -139,7 +140,7 @@ def spec_line(i, A1_funcs, A2_funcs, Deigen, e_axis, delays, params):
     
 
     # Normalized gaussian for the XUV
-    Zcoeffs_init = lambda x: A1_funcs[0](x)+A2_funcs[1](x)
+    Zcoeffs_init = lambda x: A1_funcs[0](x)+A1_funcs[1](x)
     cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv)*Zcoeffs_init(x)
    
     spec_l = np.zeros(len(delays))
@@ -177,7 +178,7 @@ def spec_line_fft(i, A1_funcs, A2_funcs, Deigen, e_axis, freqs, params):
     
 
     # Normalized gaussian for the XUV
-    Zcoeffs_init = lambda x: A1_funcs[0](x)+A2_funcs[1](x)
+    Zcoeffs_init = lambda x: A1_funcs[0](x)+A1_funcs[1](x)
     cfunc = lambda x: MU.norm_gauss((x-wuv),2/guv) * Zcoeffs_init(x)
    
     spec_l = np.zeros(len(freqs))
