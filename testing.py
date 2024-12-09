@@ -94,8 +94,6 @@ file_path = os.path.join(current_working_directory, 'dipole_example.dat')
 
 Deigen = np.loadtxt(file_path)
     
-fs.simple_test(coefs1,coefs2,Deigen,e_axis,param_dict)
-STOP 
 
 def main():
     # Get the current working directory
