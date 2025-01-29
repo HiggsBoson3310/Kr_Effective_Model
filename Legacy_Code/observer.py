@@ -117,19 +117,80 @@ def single_plot(number):
         ax[0].set_title(f"Probability as function of energy and delay")
         ax[0].set_xlabel('Time delay (fs)')
         ax[0].set_ylabel('Energy (eV)')
+        ax[0].set_ylim(24.8,25.2)
         X,Y = np.meshgrid(freqs[:len(x)//2],y)
         ax[1].pcolormesh(X,Y,np.abs(filter_spec[:,:len(x)//2]))
+        ax[1].set_ylim(24.8,25.2)
+        ax[1].axvline(freq)
         for a in ax:
             a.axhline(I-0.5*evperAU/4.319445456164016761e+00**2-2*0.88)
             a.axhline(I-0.5*evperAU/4.496410938988247175e+00**2-2*0.88)
         plt.show()
         plt.close()
         
+        freq = 2*evperAU*0.5*abs(1/4.319445456164016761e+00**2-1/4.496410938988247175e+00**2)
+        
+        iof = np.argmin(np.abs(freqs-freq))
+        imof = np.argmin(np.abs(freqs+freq))
+        print(f'filterng on a window around {freq} centered in bin {iof} for positive and {imof} for negative')
+        filter_spec = np.zeros_like(spec_fft)
+        filter_spec[:,iof-3:iof+3] = spec_fft[:,iof-3:iof+3]
+        filter_spec[:,imof-3:imof+3] = spec_fft[:,imof-3:imof+3]
+        
+        new_dat = fft.ifft(filter_spec,axis=1)
+        
+        fig, ax  = plt.subplots(2,1)
+        fig.suptitle('Double frequency filter')
+        X,Y = np.meshgrid(x*fsperau,y)
+        ax[0].pcolormesh(X,Y,np.real(new_dat),cmap='turbo')
+        ax[0].set_title(f"Probability as function of energy and delay")
+        ax[0].set_xlabel('Time delay (fs)')
+        ax[0].set_ylabel('Energy (eV)')
+        ax[0].set_ylim(24.8,25.2)
+        X,Y = np.meshgrid(freqs[:len(x)//2],y)
+        ax[1].pcolormesh(X,Y,np.abs(filter_spec[:,:len(x)//2]))
+        ax[1].set_ylim(24.8,25.2)
+        ax[1].axvline(freq)
+        for a in ax:
+            a.axhline(I-0.5*evperAU/4.319445456164016761e+00**2-2*0.88)
+            a.axhline(I-0.5*evperAU/4.496410938988247175e+00**2-2*0.88)
+        plt.show()
+        plt.close()
+        
+        freq = 3*evperAU*0.5*abs(1/4.319445456164016761e+00**2-1/4.496410938988247175e+00**2)
+        
+        iof = np.argmin(np.abs(freqs-freq))
+        imof = np.argmin(np.abs(freqs+freq))
+        print(f'filterng on a window around {freq} centered in bin {iof} for positive and {imof} for negative')
+        filter_spec = np.zeros_like(spec_fft)
+        filter_spec[:,iof-3:iof+3] = spec_fft[:,iof-3:iof+3]
+        filter_spec[:,imof-3:imof+3] = spec_fft[:,imof-3:imof+3]
+        
+        new_dat = fft.ifft(filter_spec,axis=1)
+        
+        fig, ax  = plt.subplots(2,1)
+        fig.suptitle('Triple frequency filter')
+        X,Y = np.meshgrid(x*fsperau,y)
+        ax[0].pcolormesh(X,Y,np.real(new_dat),cmap='turbo')
+        ax[0].set_title(f"Probability as function of energy and delay")
+        ax[0].set_xlabel('Time delay (fs)')
+        ax[0].set_ylabel('Energy (eV)')
+        ax[0].set_ylim(24.8,25.2)
+        X,Y = np.meshgrid(freqs[:len(x)//2],y)
+        ax[1].pcolormesh(X,Y,np.abs(filter_spec[:,:len(x)//2]))
+        ax[1].set_ylim(24.8,25.2)
+        ax[1].axvline(freq)
+        for a in ax:
+            a.axhline(I-0.5*evperAU/4.319445456164016761e+00**2-2*0.88)
+            a.axhline(I-0.5*evperAU/4.496410938988247175e+00**2-2*0.88)
+        plt.show()
+        plt.close()
         
         fig, ax  = plt.subplots(2,1,gridspec_kw={'hspace': 0.5})
         avg = np.mean(data, axis=-1)
         ax[0].plot(y, avg)
         ax[0].set_title('Energy average')
+        
         X,Y = np.meshgrid(x*fsperau,y)
         newdat = np.zeros_like(data)
         ax[1].set_title('x20 saturated')

@@ -1,4 +1,4 @@
-import math_util as MU
+import Legacy_Code.math_util_legacy as MU
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider

@@ -1,6 +1,6 @@
 # The idea of this script is to generate different folders with different dipole values to observe the change of the spectrogram. 
 import numpy as np
-import FWM_spec as fs
+import Legacy_Code.FWM_spec_legacy as fs
 import os 
 
 np.random.seed(24)

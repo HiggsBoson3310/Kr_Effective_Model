@@ -1,6 +1,6 @@
 import MQDT_core as mqdt
 import numpy as np
-import math_util as MU
+import Legacy_Code.math_util_legacy as MU
 import matplotlib.pyplot as plt
 import scipy.interpolate as interpol
 import scipy.signal as sg
